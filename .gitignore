@@ -3,6 +3,13 @@ cat > .gitignore << 'EOF'
 # Local .terraform directories
 **/.terraform/
 
+#Executable and Linkable Format
+*terraform-provider-kubectl_v1.19.0
+*terraform-provider-kubernetes_v2.38.0_x5
+*terraform-provider-kubernetes_v2.38.0_x5
+
+
+
 # .tfstate files
 *.tfstate
 *.tfstate.*
