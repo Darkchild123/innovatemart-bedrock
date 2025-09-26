@@ -23,7 +23,9 @@ output "developer_secret_key" {
 
 output "developer_kubeconfig_instructions" {
   description = "Instructions for developer access"
-  value = <<EOT
+  sensitive   = true
+  value       = <<EOT
+  
 
 === DEVELOPER ACCESS INSTRUCTIONS ===
 
