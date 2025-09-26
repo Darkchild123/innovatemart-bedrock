@@ -1,4 +1,4 @@
-InnovateMart - Project Bedrock 🚀
+InnovateMart - Project Bedrock 
 Assignment Overview
 Company: InnovateMart Inc.
 Role: Cloud DevOps Engineer
