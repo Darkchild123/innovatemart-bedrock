@@ -1,0 +1,95 @@
+# .github/workflows/terraform.yml
+name: Terraform EKS Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/eks/**' # Trigger only if changes in terraform/eks directory
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'terraform/eks/**' # Trigger only if changes in terraform/eks directory
+
+jobs:
+  terraform_plan:
+    name: 'Terraform Plan'
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1 # Replace with your region
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.x # Or a specific version
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+        working-directory: terraform/eks/default # Adjust if your terraform files are elsewhere
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+        working-directory: terraform/eks/default # Adjust if your terraform files are elsewhere
+        continue-on-error: true # Allow plan to fail without stopping the workflow
+
+      # Add a step to comment the plan on pull requests
+      - name: Update Pull Request with Terraform Plan
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Terraform Plan\n\`\`\`\n${process.env.TF_PLAN}\n\`\`\``
+            })
+        env:
+          TF_PLAN: ${{ steps.plan.outputs.stdout }}
+
+  terraform_apply:
+    name: 'Terraform Apply'
+    runs-on: ubuntu-latest
+    needs: terraform_plan # Ensures apply runs after plan
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' # Only apply on push to main branch
+    env:
+      AWS_REGION: us-east-1 # Replace with your region
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.x
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/eks/default
+
+      - name: Terraform Apply
+        run: terraform apply --auto-approve
+        working-directory: terraform/eks/default
