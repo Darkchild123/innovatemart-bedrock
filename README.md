@@ -14,6 +14,83 @@
 ![Screenshot 2025-10-06 144630](https://github.com/user-attachments/assets/fd6daa0b-d79e-4169-9a06-198771719a42)
 
 
+## File structure
+
+**retail-store-sample-app/
+├── .github/                       # GitHub Actions workflows for CI/CD
+├── docs/                          # Project documentation and diagrams
+├── oss/                           # Open Source Software attribution and tools
+├── samples/                       # Sample data (products, tags) and images
+├── scripts/                       # Various utility scripts (build, deploy, generate reports)
+├── src/                           # Main source code directory
+│   ├── app/                       # Application-level configurations & Helm charts
+│   │   ├── chart/                 # Main Helm chart for the entire application
+│   │   ├── compose.override.yaml  # Docker Compose override file
+│   │   ├── docker-compose.yml     # Docker Compose definition for local dev
+│   │   └── templates/             # Helm chart templates
+│   ├── cart/                      # Shopping Cart Microservice (Java)
+│   │   ├── chart/                 # Helm chart for the cart service
+│   │   ├── Dockerfile
+│   │   ├── openapi.yml
+│   │   ├── pom.xml                # Maven project file
+│   │   └── src/                   # Java source code
+│   ├── catalog/                   # Product Catalog Microservice (Go)
+│   │   ├── api/                   # Go API definitions
+│   │   ├── chart/                 # Helm chart for the catalog service
+│   │   ├── config/
+│   │   ├── controller/
+│   │   ├── Dockerfile
+│   │   ├── go.mod                 # Go module file
+│   │   ├── main.go                # Main Go application entry point
+│   │   ├── model/
+│   │   ├── openapi.yml
+│   │   └── repository/
+│   ├── checkout/                  # Checkout Microservice (TypeScript/Node.js)
+│   │   ├── chart/                 # Helm chart for the checkout service
+│   │   ├── Dockerfile
+│   │   ├── package.json           # Node.js package file
+│   │   ├── openapi.yml
+│   │   └── src/                   # TypeScript/JavaScript source code
+│   ├── e2e/                       # End-to-End Tests (Cypress/JavaScript)
+│   │   ├── cypress/
+│   │   ├── cypress.config.js
+│   │   └── package.json
+│   ├── load-generator/            # Load Generation Tool
+│   │   ├── Dockerfile
+│   │   ├── package.json
+│   │   └── scenario.yml
+│   ├── orders/                    # Orders Microservice (Java)
+│   │   ├── chart/                 # Helm chart for the orders service
+│   │   ├── Dockerfile
+│   │   ├── events/                # Event definitions
+│   │   ├── openapi.yml
+│   │   ├── pom.xml
+│   │   └── src/                   # Java source code
+│   └── ui/                        # User Interface / Frontend (Java/Spring Boot/Thymeleaf)
+│       ├── chart/                 # Helm chart for the UI service
+│       ├── Dockerfile
+│       ├── pom.xml
+│       └── src/                   # Java, HTML, static assets
+└── terraform/                     # Infrastructure as Code (IaC) with Terraform
+    ├── apprunner/                 # Terraform for AWS App Runner deployment
+    ├── ecs/                       # Terraform for AWS ECS deployment
+    ├── eks/                       # Terraform for AWS EKS deployment
+    │   └── default/               # Default EKS cluster configuration
+    └── lib/                       # Reusable Terraform modules
+├── CHANGELOG.md
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
+├── DEVELOPER_GUIDE.md
+├── devenv.lock
+├── devenv.nix
+├── devenv.yaml
+├── LICENSE
+├── nx.json                        # Nx Monorepo configuration
+├── package.json
+├── README.md
+├── release-please-config.json
+├── renovate.json
+└── yarn.lock**
 
 This repository contains the infrastructure as code (IaC) and application deployment configurations for "Project Bedrock," InnovateMart Inc.'s mission to deploy its new microservices-based retail store application to a production-grade Kubernetes environment on AWS. As the Cloud DevOps Engineer, my objective was to establish a scalable and automated foundation for the application on Amazon Elastic Kubernetes Service (EKS).
 
