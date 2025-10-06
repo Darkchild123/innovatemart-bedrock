@@ -1,180 +1,140 @@
-![Banner](./docs/images/banner.png)
+# Project Bedrock: InnovateMart Retail Store Application on AWS EKS
 
-<div align="center">
-  <div align="center">
 
-[![Stars](https://img.shields.io/github/stars/aws-containers/retail-store-sample-app)](Stars)
-![GitHub License](https://img.shields.io/github/license/aws-containers/retail-store-sample-app?color=green)
-![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Faws-containers%2Fretail-store-sample-app%2Frefs%2Fheads%2Fmain%2F.release-please-manifest.json&query=%24%5B%22.%22%5D&label=release)
-![GitHub Release Date](https://img.shields.io/github/release-date/aws-containers/retail-store-sample-app)
+## Deliverables
+   **APP URL:** http://a6759d284b95a4363a26352cfe065e05-872272330.eu-west-2.elb.amazonaws.com/
+   **Git Repository Link:** [https://github.com/Darkchild123/innovatemart-bedrock.git]
+   **Deployment & Architecture Guide:** This README serves as a comprehensive guide.
+    *   **Architecture Overview:** (Describe the microservices architecture, how services communicate, and the EKS components used).
+    *   **Application Access:** Refer to the "Accessing the Application" section above.
+    *   **Developer Credentials:** Refer to the "Developer Access Instructions" section above.
 
-  </div>
+## Overview
 
-  <strong>
-  <h2>AWS Containers Retail Sample</h2>
-  </strong>
-</div>
+![Screenshot 2025-10-06 144630](https://github.com/user-attachments/assets/fd6daa0b-d79e-4169-9a06-198771719a42)
 
-This is a sample application designed to illustrate various concepts related to containers on AWS. It presents a sample retail store application including a product catalog, shopping cart and checkout.
 
-It provides:
 
-- A demo store-front application with themes, pages to show container and application topology information, generative AI chat bot and utility functions for experimentation and demos.
-- An optional distributed component architecture using various languages and frameworks
-- A variety of different persistence backends for the various components like MariaDB (or MySQL), DynamoDB and Redis
-- The ability to run in different container orchestration technologies like Docker Compose, Kubernetes etc.
-- Pre-built container images for both x86-64 and ARM64 CPU architectures
-- All components instrumented for Prometheus metrics and OpenTelemetry OTLP tracing
-- Support for Istio on Kubernetes
-- Load generator which exercises all of the infrastructure
+This repository contains the infrastructure as code (IaC) and application deployment configurations for "Project Bedrock," InnovateMart Inc.'s mission to deploy its new microservices-based retail store application to a production-grade Kubernetes environment on AWS. As the Cloud DevOps Engineer, my objective was to establish a scalable and automated foundation for the application on Amazon Elastic Kubernetes Service (EKS).
 
-See the [features documentation](./docs/features.md) for more information.
+The retail-store-sample-app is a polyglot microservices application, designed for resilience and scalability, and deployed using modern DevOps practices.
 
-**This project is intended for educational purposes only and not for production use**
+## Core Requirements Implemented
 
-![Screenshot](/docs/images/screenshot.png)
+### 1. Infrastructure as Code (IaC)
 
-## Application Architecture
+All necessary AWS resources are provisioned using **Terraform**. The IaC defines:
+*   A Virtual Private Cloud (VPC) with public and private subnets.
+*   An Amazon EKS cluster named retail-store in the eu-west-2 region.
+*   Necessary IAM roles and policies for the EKS cluster and node groups.
 
-The application has been deliberately over-engineered to generate multiple de-coupled components. These components generally have different infrastructure dependencies, and may support multiple "backends" (example: Carts service supports MongoDB or DynamoDB).
+The Terraform configurations are located in the terraform/eks/default directory.
 
-![Architecture](/docs/images/architecture.png)
+### 2. Application Deployment
 
-| Component                  | Language | Container Image                                                             | Helm Chart                                                                        | Description                             |
-| -------------------------- | -------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------- |
-| [UI](./src/ui/)            | Java     | [Link](https://gallery.ecr.aws/aws-containers/retail-store-sample-ui)       | [Link](https://gallery.ecr.aws/aws-containers/retail-store-sample-ui-chart)       | Store user interface                    |
-| [Catalog](./src/catalog/)  | Go       | [Link](https://gallery.ecr.aws/aws-containers/retail-store-sample-catalog)  | [Link](https://gallery.ecr.aws/aws-containers/retail-store-sample-catalog-chart)  | Product catalog API                     |
-| [Cart](./src/cart/)        | Java     | [Link](https://gallery.ecr.aws/aws-containers/retail-store-sample-cart)     | [Link](https://gallery.ecr.aws/aws-containers/retail-store-sample-cart-chart)     | User shopping carts API                 |
-| [Orders](./src/orders)     | Java     | [Link](https://gallery.ecr.aws/aws-containers/retail-store-sample-orders)   | [Link](https://gallery.ecr.aws/aws-containers/retail-store-sample-orders-chart)   | User orders API                         |
-| [Checkout](./src/checkout) | Node     | [Link](https://gallery.ecr.aws/aws-containers/retail-store-sample-checkout) | [Link](https://gallery.ecr.aws/aws-containers/retail-store-sample-checkout-chart) | API to orchestrate the checkout process |
+The `retail-store-sample-app` is deployed to the EKS cluster using **Helm**. For this initial deployment, all in-cluster dependencies (databases like MySQL, PostgreSQL, DynamoDB Local; and message brokers like Redis, RabbitMQ) are running as containers within the EKS cluster.
 
-## Quickstart
+The main application Helm chart is located in src/app/chart.
 
-The following sections provide quickstart instructions for various platforms.
 
-### Docker
 
-This deployment method will run the application as a single container on your local machine using `docker`.
+### 3. Developer Access
 
-Pre-requisites:
+A new IAM user, `innovatemart-dev-readonly`, has been created with **read-only access** to the resources within the EKS cluster. This allows developers to view logs, describe pods, and check service status without the ability to make modifications.
 
-- Docker installed locally
+### 4. Automation with CI/CD
 
-Run the container:
+A CI/CD pipeline, implemented using **GitHub Actions**, automates the deployment of the Terraform infrastructure code. The pipeline adheres to a sound branching strategy (e.g., GitFlow inspired), where:
+*   Pushes to feature branches trigger a "terraform plan".
+*   Merges to the `main` branch trigger a "terraform apply".
+AWS credentials are securely managed using GitHub Secrets and are not hardcoded in the pipeline configuration.
 
-```
-docker run -it --rm -p 8888:8080 public.ecr.aws/aws-containers/retail-store-sample-ui:1.0.0
-```
+## Deployment Steps (High-Level)
 
-Open the frontend in a browser window:
+This section outlines the manual steps to deploy, assuming an Ubuntu environment. For automated deployments, refer to the GitHub Actions workflow.
 
-```
-http://localhost:8888
-```
+### Prerequisites
 
-To stop the container in `docker` use Ctrl+C.
+Ensure the following tools are installed on your Ubuntu machine:
+*   AWS CLI
+*   Terraform
+*   kubectl
+*   Helm
 
-### Docker Compose
+### AWS CLI Configuration
 
-This deployment method will run the application on your local machine using `docker-compose`.
+Configure your AWS CLI with appropriate administrator credentials:
 
-Pre-requisites:
+**bash command**
+aws configure
 
-- Docker installed locally
 
-Download the latest Docker Compose file and use `docker compose` to run the application containers:
+### 1. Deploy EKS Infrastructure with Terraform
 
-```
-wget https://github.com/aws-containers/retail-store-sample-app/releases/latest/download/docker-compose.yaml
+Navigate to the Terraform EKS directory and apply the configuration.
 
-DB_PASSWORD='<some password>' docker compose --file docker-compose.yaml up
-```
+**bash commands**
+cd terraform/eks/default
+terraform init
+terraform plan
+terraform apply --auto-approve
 
-Open the frontend in a browser window:
 
-```
-http://localhost:8888
-```
+### 2. Configure kubectl
 
-To stop the containers in `docker compose` use Ctrl+C. To delete all the containers and related resources run:
+Update your `kubeconfig` to connect to your new EKS cluster:
 
-```
-docker compose -f docker-compose.yaml down
-```
+bash
+aws eks --region eu-west-2 update-kubeconfig --name retail-store-eks-cluster
 
-### Kubernetes
 
-This deployment method will run the application in an existing Kubernetes cluster.
+### 3. Deploy Application with Helm
 
-Pre-requisites:
+First, build Helm dependencies, then install the application chart.
 
-- Kubernetes cluster
-- `kubectl` installed locally
+bash
+cd src/app/chart
+helm dependency build
+cd ../../.. # Go back to project root
+helm install retail-store src/app/chart
 
-Use `kubectl` to run the application:
 
-```
-kubectl apply -f https://github.com/aws-containers/retail-store-sample-app/releases/latest/download/kubernetes.yaml
-kubectl wait --for=condition=available deployments --all
-```
+## Accessing the Application
 
-Get the URL for the frontend load balancer like so:
+Once the application is deployed, you can access the frontend UI.
 
-```
-kubectl get svc ui
-```
+1.  **Get the External IP/Hostname of the UI service:**
+  bash command
+    kubectl get svc ui -n default
 
-To remove the application use `kubectl` again:
+2.  **Open in Browser:** 
+Copy the EXTERNAL-IP and paste it into your web browser.
+## http://a6759d284b95a4363a26352cfe065e05-872272330.eu-west-2.elb.amazonaws.com/
 
-```
-kubectl delete -f https://github.com/aws-containers/retail-store-sample-app/releases/latest/download/kubernetes.yaml
-```
+## Developer Access Instructions
 
-### Terraform
+The `innovatemart-dev-readonly` IAM user has read-only access. To enable a developer to access the EKS cluster:
 
-The following options are available to deploy the application using Terraform:
+1.  **Provide AWS Credentials:** Give the developer the `AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY` for the `innovatemart-dev-readonly IAM user.
+2.  **Developer's Local Setup:** On their machine, the developer should:
+    *   Set environment variables:
+        **bash command**
+        export AWS_ACCESS_KEY_ID="<developer_access_key_id>"
+        export AWS_SECRET_ACCESS_KEY="<developer_secret_access_key>"
+       
+    *   Updated their kubeconfig (this creates a separate kubeconfig file for them):
+        **bash command**
+        aws eks --region eu-west-2 update-kubeconfig --name retail-store-eks-cluster --kubeconfig ~/.kube/config-innovatemart-dev
+      
+    *   To use this kubeconfig:
+        **bash Command**
+        export KUBECONFIG=~/.kube/config-innovatemart-dev
+        kubectl get pods -A
+     
+    They will be able to view resources but will receive "Forbidden" errors if they attempt to modify anything.
 
-| Name                                             | Description                                                                                                     |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| [Amazon EKS](./terraform/eks/default/)           | Deploys the application to Amazon EKS using other AWS services for dependencies, such as RDS, DynamoDB etc.     |
-| [Amazon EKS (Minimal)](./terraform/eks/minimal/) | Deploys the application to Amazon EKS using in-cluster dependencies instead of RDS, DynamoDB etc.               |
-| [Amazon ECS](./terraform/ecs/default/)           | Deploys the application to Amazon ECS using other AWS services for dependencies, such as RDS, DynamoDB etc.     |
-| [AWS App Runner](./terraform/apprunner/)         | Deploys the application to AWS App Runner using other AWS services for dependencies, such as RDS, DynamoDB etc. |
+    
 
-## Security
+    *   **Bonus Objectives Implementation:** (As detailed in the "Bonus Objectives" section above).
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
-
-## License
-
-This project is licensed under the MIT-0 License.
-
-This package depends on and may incorporate or retrieve a number of third-party
-software packages (such as open source packages) at install-time or build-time
-or run-time ("External Dependencies"). The External Dependencies are subject to
-license terms that you must accept in order to use this package. If you do not
-accept all of the applicable license terms, you should not use this package. We
-recommend that you consult your company’s open source approval policy before
-proceeding.
-
-Provided below is a list of External Dependencies and the applicable license
-identification as indicated by the documentation associated with the External
-Dependencies as of Amazon's most recent review.
-
-THIS INFORMATION IS PROVIDED FOR CONVENIENCE ONLY. AMAZON DOES NOT PROMISE THAT
-THE LIST OR THE APPLICABLE TERMS AND CONDITIONS ARE COMPLETE, ACCURATE, OR
-UP-TO-DATE, AND AMAZON WILL HAVE NO LIABILITY FOR ANY INACCURACIES. YOU SHOULD
-CONSULT THE DOWNLOAD SITES FOR THE EXTERNAL DEPENDENCIES FOR THE MOST COMPLETE
-AND UP-TO-DATE LICENSING INFORMATION.
-
-YOUR USE OF THE EXTERNAL DEPENDENCIES IS AT YOUR SOLE RISK. IN NO EVENT WILL
-AMAZON BE LIABLE FOR ANY DAMAGES, INCLUDING WITHOUT LIMITATION ANY DIRECT,
-INDIRECT, CONSEQUENTIAL, SPECIAL, INCIDENTAL, OR PUNITIVE DAMAGES (INCLUDING
-FOR ANY LOSS OF GOODWILL, BUSINESS INTERRUPTION, LOST PROFITS OR DATA, OR
-COMPUTER FAILURE OR MALFUNCTION) ARISING FROM OR RELATING TO THE EXTERNAL
-DEPENDENCIES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY, EVEN
-IF AMAZON HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. THESE LIMITATIONS
-AND DISCLAIMERS APPLY EXCEPT TO THE EXTENT PROHIBITED BY APPLICABLE LAW.
-
-MariaDB Community License - [LICENSE](https://mariadb.com/kb/en/mariadb-licenses/)
-MySQL Community Edition - [LICENSE](https://github.com/mysql/mysql-server/blob/8.0/LICENSE)
+---
