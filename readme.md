@@ -1,0 +1,140 @@
+![Screenshot 2025-10-06 062017](https://github.com/user-attachments/assets/85cff7ef-b52c-4d1a-aa84-b0269c1a31ed)# Project Bedrock: InnovateMart Retail Store Application on AWS EKS
+
+## Overview
+
+This repository contains the infrastructure as code (IaC) and application deployment configurations for "Project Bedrock," InnovateMart Inc.'s mission to deploy its new microservices-based retail store application to a production-grade Kubernetes environment on AWS. As the Cloud DevOps Engineer, my objective was to establish a scalable and automated foundation for the application on Amazon Elastic Kubernetes Service (EKS).
+
+The retail-store-sample-app is a polyglot microservices application, designed for resilience and scalability, and deployed using modern DevOps practices.
+
+## Core Requirements Implemented
+
+### 1. Infrastructure as Code (IaC)
+
+All necessary AWS resources are provisioned using **Terraform**. The IaC defines:
+*   A Virtual Private Cloud (VPC) with public and private subnets.
+*   An Amazon EKS cluster named retail-store in the eu-west-2 region.
+*   Necessary IAM roles and policies for the EKS cluster and node groups.
+
+The Terraform configurations are located in the terraform/eks/default directory.
+
+### 2. Application Deployment
+
+The `retail-store-sample-app` is deployed to the EKS cluster using **Helm**. For this initial deployment, all in-cluster dependencies (databases like MySQL, PostgreSQL, DynamoDB Local; and message brokers like Redis, RabbitMQ) are running as containers within the EKS cluster.
+
+The main application Helm chart is located in src/app/chart.
+![Screenshot 2025-10-06 062017](https://github.com/user-attachments/assets/12780734-f783-4082-afef-d8a9282c57c6)
+![Screenshot 2025-10-06 062105](https://github.com/user-attachments/assets/f97aa55a-8f54-4e21-809a-31b64b8efa8f)
+![Screenshot 2025-10-06 062041](https://github.com/user-attachments/assets/4e791444-ec0f-4262-8d67-c3ab43f1b7fb)
+
+
+
+### 3. Developer Access
+
+A new IAM user, `innovatemart-dev-readonly`, has been created with **read-only access** to the resources within the EKS cluster. This allows developers to view logs, describe pods, and check service status without the ability to make modifications.
+
+### 4. Automation with CI/CD
+
+A CI/CD pipeline, implemented using **GitHub Actions**, automates the deployment of the Terraform infrastructure code. The pipeline adheres to a sound branching strategy (e.g., GitFlow inspired), where:
+*   Pushes to feature branches trigger a "terraform plan".
+*   Merges to the `main` branch trigger a "terraform apply".
+AWS credentials are securely managed using GitHub Secrets and are not hardcoded in the pipeline configuration.
+
+## Deployment Steps (High-Level)
+
+This section outlines the manual steps to deploy, assuming an Ubuntu environment. For automated deployments, refer to the GitHub Actions workflow.
+
+### Prerequisites
+
+Ensure the following tools are installed on your Ubuntu machine:
+*   AWS CLI
+*   Terraform
+*   kubectl
+*   Helm
+
+### AWS CLI Configuration
+
+Configure your AWS CLI with appropriate administrator credentials:
+
+**bash command**
+aws configure
+
+
+### 1. Deploy EKS Infrastructure with Terraform
+
+Navigate to the Terraform EKS directory and apply the configuration.
+
+**bash commands**
+cd terraform/eks/default
+terraform init
+terraform plan
+terraform apply --auto-approve
+
+
+### 2. Configure kubectl
+
+Update your `kubeconfig` to connect to your new EKS cluster:
+
+bash
+aws eks --region eu-west-2 update-kubeconfig --name retail-store-eks-cluster
+
+
+### 3. Deploy Application with Helm
+
+First, build Helm dependencies, then install the application chart.
+
+bash
+cd src/app/chart
+helm dependency build
+cd ../../.. # Go back to project root
+helm install retail-store src/app/chart
+
+
+## Accessing the Application
+
+Once the application is deployed, you can access the frontend UI.
+
+1.  **Get the External IP/Hostname of the UI service:**
+  bash command
+    kubectl get svc ui -n default
+
+2.  **Open in Browser:** 
+Copy the EXTERNAL-IP and paste it into your web browser.
+## http://a6759d284b95a4363a26352cfe065e05-872272330.eu-west-2.elb.amazonaws.com/
+
+## Developer Access Instructions
+
+The `innovatemart-dev-readonly` IAM user has read-only access. To enable a developer to access the EKS cluster:
+
+1.  **Provide AWS Credentials:** Give the developer the `AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY` for the `innovatemart-dev-readonly IAM user.
+2.  **Developer's Local Setup:** On their machine, the developer should:
+    *   Set environment variables:
+        **bash command**
+        export AWS_ACCESS_KEY_ID="<developer_access_key_id>"
+        export AWS_SECRET_ACCESS_KEY="<developer_secret_access_key>"
+       
+    *   Updated their kubeconfig (this creates a separate kubeconfig file for them):
+        **bash command**
+        aws eks --region eu-west-2 update-kubeconfig --name retail-store-eks-cluster --kubeconfig ~/.kube/config-innovatemart-dev
+      
+    *   To use this kubeconfig:
+        **bash Command**
+        export KUBECONFIG=~/.kube/config-innovatemart-dev
+        kubectl get pods -A
+     
+    They will be able to view resources but will receive "Forbidden" errors if they attempt to modify anything.
+
+    ![Screenshot 2025-10-06 144630](https://github.com/user-attachments/assets/8450a535-fc38-4a63-8e1a-122451dfff14)
+
+
+
+
+## Deliverables
+      **External IP:** http://a6759d284b95a4363a26352cfe065e05-872272330.eu-west-2.elb.amazonaws.com/
+   **Git Repository Link:** [https://github.com/Darkchild123/innovatemart-bedrock.git]
+   **Deployment & Architecture Guide:** This README serves as a comprehensive guide.
+    *   **Architecture Overview:** (Describe the microservices architecture, how services communicate, and the EKS components used).
+    *   **Application Access:** Refer to the "Accessing the Application" section above.
+    *   **Developer Credentials:** Refer to the "Developer Access Instructions" section above.
+    *   **Bonus Objectives Implementation:** (As detailed in the "Bonus Objectives" section above).
+
+---
